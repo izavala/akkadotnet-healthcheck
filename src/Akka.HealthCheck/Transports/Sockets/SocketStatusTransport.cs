@@ -7,8 +7,10 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using Akka.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text;
 
 namespace Akka.HealthCheck.Transports.Sockets
 {
@@ -36,6 +38,11 @@ namespace Akka.HealthCheck.Transports.Sockets
                     _socket.Bind(new IPEndPoint(IPAddress.IPv6Any, Settings.Port));
                     _socket.Listen(10);
                 }
+                var handler = await _socket.AcceptAsync();
+                byte[] msg = Encoding.ASCII.GetBytes("Live");
+                handler.Send(msg);
+                handler.Shutdown(SocketShutdown.Both);
+                handler.Close();
 
                 return new TransportWriteStatus(true);
             }
